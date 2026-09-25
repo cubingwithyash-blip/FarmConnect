@@ -133,23 +133,23 @@
         </div>
 
         <nav>
-            <button onclick="showPage('dashboard')" class="nav-btn active">
+            <button onclick="showPage('dashboard', event)" class="nav-btn active">
     🏠 <span data-translate="dashboard">Dashboard</span>
 </button>
 
-           <button onclick="showPage('marketplace')" class="nav-btn">
+           <button onclick="showPage('marketplace', event)" class="nav-btn">
     🛒 <span data-translate="marketplace">Marketplace</span>
 </button>
 
-<button onclick="showPage('orders')" class="nav-btn">
+<button onclick="showPage('orders', event)" class="nav-btn">
     📦 <span data-translate="orders">Orders</span>
 </button>
 
-<button onclick="showPage('forecast')" class="nav-btn">
+<button onclick="showPage('forecast', event)" class="nav-btn">
     🤖 <span data-translate="forecast">AI Forecast</span>
 </button>
 
-<button onclick="showPage('logistics')" class="nav-btn">
+<button onclick="showPage('logistics', event)" class="nav-btn">
     🚚 <span data-translate="logistics">Logistics</span>
 </button>
         </nav>
@@ -309,7 +309,7 @@
             Recent Orders
         </h2>
 
-        <button onclick="showPage('orders')" class="link-btn">
+        <button onclick="showPage('orders', event)" class="link-btn">
             <span data-translate="viewAll">
                 View All
             </span>
@@ -390,7 +390,7 @@
         </p>
     </div>
 
-    <button onclick="showPage('forecast')">
+    <button onclick="showPage('forecast', event)">
         <span data-translate="viewForecast">
             View Forecast
         </span>

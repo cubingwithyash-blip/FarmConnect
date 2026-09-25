@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api";
+const API_URL = "https://farmconnect-wyel.onrender.com/api";
 // ================= AUTHENTICATION =================
 
 let isLoginMode = false;
@@ -230,7 +230,7 @@ window.addEventListener("DOMContentLoaded", function() {
     }
 
 });
-function showPage(pageName) {
+function showPage(pageName, event) {
 
     // Hide all pages
     const pages = document.querySelectorAll(".page");
@@ -270,119 +270,6 @@ function showPage(pageName) {
 
 
 
-// Add produce
-document.getElementById("produceForm")
-    .addEventListener("submit", function(event) {
-
-        event.preventDefault();
-
-        const product =
-            document.getElementById("product").value;
-
-        const quantity =
-            document.getElementById("quantity").value;
-
-        const price =
-            document.getElementById("price").value;
-
-        const location =
-            document.getElementById("location").value;
-
-
-        if(quantity === "" || price === "") {
-
-            alert("Please enter quantity and price.");
-
-            return;
-        }
-
-
-        alert(
-            "Produce Listed Successfully!\n\n" +
-            "Product: " + product +
-            "\nQuantity: " + quantity + " kg" +
-            "\nPrice: ₹" + price + "/kg" +
-            "\nLocation: " + location
-        );
-
-    });
-
-
-
-// Place order
-async function placeOrder(productId) {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-        alert("Please login first.");
-        return;
-    }
-
-    // Find the product name from the marketplace card
-    const productCards = document.querySelectorAll(".product-card");
-    let productName = "this product";
-
-    productCards.forEach(card => {
-        const button = card.querySelector("button");
-
-        if (button && button.getAttribute("onclick")?.includes(productId)) {
-            const heading = card.querySelector("h3");
-
-            if (heading) {
-                productName = heading.textContent.replace("Fresh ", "");
-            }
-        }
-    });
-
-    const quantity = prompt(
-        `How many kg of ${productName} do you want?`
-    );
-
-    if (!quantity) return;
-
-    const quantityNumber = Number(quantity);
-
-    if (isNaN(quantityNumber) || quantityNumber <= 0) {
-        alert("Please enter a valid quantity.");
-        return;
-    }
-
-    try {
-        const response = await fetch(
-            "http://localhost:5000/api/orders",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    productId: productId,
-                    quantity: quantityNumber
-                })
-            }
-        );
-
-        const data = await response.json();
-
-        if (response.ok) {
-            alert(
-                "✅ Order placed successfully!\n\n" +
-                "Product: " + productName + "\n" +
-                "Quantity: " + quantityNumber + " kg\n" +
-                "Total: ₹" + data.order.totalPrice
-            );
-
-            loadMarketplaceProducts();
-        } else {
-            alert("❌ " + (data.message || "Could not place order"));
-        }
-
-    } catch (error) {
-        console.error(error);
-        alert("❌ Cannot connect to backend.");
-    }
-}
 // ==========================================
 // FARMER - ADD NEW PRODUCE
 // ==========================================
@@ -413,7 +300,7 @@ if (produceForm) {
         try {
 
             const response = await fetch(
-                "http://localhost:5000/api/products",
+    `${API_URL}/products`,
                 {
                     method: "POST",
 
@@ -475,8 +362,8 @@ async function loadMarketplaceProducts() {
     try {
 
         const response = await fetch(
-            "http://localhost:5000/api/products"
-        );
+    `${API_URL}/products`
+);
 
         const products = await response.json();
 
@@ -547,6 +434,85 @@ card.innerHTML = `
                 <p>Please make sure the backend is running.</p>
             </div>
         `;
+    }
+}
+// ==========================================
+// BUYER - PLACE ORDER
+// ==========================================
+
+async function placeOrder(productId) {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        alert("Please login first.");
+        return;
+    }
+
+    const quantity = prompt(
+        "Enter quantity you want to buy (kg):"
+    );
+
+    if (!quantity) {
+        return;
+    }
+
+    const quantityNumber = Number(quantity);
+
+    if (
+        isNaN(quantityNumber) ||
+        quantityNumber <= 0
+    ) {
+        alert("Please enter a valid quantity.");
+        return;
+    }
+
+    try {
+
+       const response = await fetch(
+    `${API_URL}/orders`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+
+                body: JSON.stringify({
+                    productId: productId,
+                    quantity: quantityNumber
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+
+            alert(
+                "✅ Order placed successfully!\n\n" +
+                "Total: ₹" + data.order.totalPrice
+            );
+
+            // Reload marketplace
+            loadMarketplaceProducts();
+
+        } else {
+
+            alert(
+                "❌ " +
+                (data.message || "Could not place order")
+            );
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "❌ Cannot connect to backend."
+        );
     }
 }
 
