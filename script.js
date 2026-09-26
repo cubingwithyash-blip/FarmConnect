@@ -175,6 +175,10 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
             updateUserProfile(data.user);
 
+            // Load orders immediately after login
+
+            loadOrders();
+
         } else {
 
             document.getElementById("authMessage").textContent =
@@ -197,6 +201,7 @@ function updateUserProfile(user) {
 
     const profileName = document.querySelector(".profile b");
     const profileRole = document.querySelector(".profile p");
+    const welcomeMessage = document.getElementById("welcome-message");
 
     if (profileName) {
         profileName.textContent = user.name;
@@ -204,6 +209,10 @@ function updateUserProfile(user) {
 
     if (profileRole) {
         profileRole.textContent = user.role;
+    }
+
+    if (welcomeMessage) {
+        welcomeMessage.textContent = `Welcome back, ${user.name} 👋`;
     }
 }
 
@@ -266,6 +275,10 @@ function showPage(pageName, event) {
     });
 
     event.target.classList.add("active");
+    // Load fresh orders whenever Orders page is opened
+if (pageName === "orders") {
+    loadOrders();
+}
 }
 
 
@@ -436,6 +449,233 @@ card.innerHTML = `
         `;
     }
 }
+
+
+// ==========================================
+// LOAD REAL ORDERS
+// ==========================================
+
+// ==========================================
+// LOAD REAL ORDERS
+// ==========================================
+
+async function loadOrders() {
+
+    const ordersList = document.getElementById("ordersList");
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
+
+    if (!ordersList || !token || !userData) {
+        return;
+    }
+
+    const user = JSON.parse(userData);
+
+    // Choose endpoint based on user role
+    const ordersEndpoint =
+        user.role === "farmer"
+            ? `${API_URL}/orders/farmer-orders`
+            : `${API_URL}/orders/my-orders`;
+
+    try {
+
+        const response = await fetch(ordersEndpoint, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const orders = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                orders.message || "Failed to load orders"
+            );
+        }
+
+        ordersList.innerHTML = "";
+
+        // No orders
+        if (orders.length === 0) {
+
+            ordersList.innerHTML = `
+                <tr>
+                    <td colspan="5">
+                        No orders found.
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+        // Display orders
+        orders.forEach(order => {
+
+            const row = document.createElement("tr");
+
+            const productName =
+                order.product?.name || "Unknown Product";
+
+            const buyerName =
+                order.buyer?.name || "Unknown Buyer";
+
+            const quantity =
+                order.quantity || 0;
+
+            const price =
+                order.product?.price ||
+                (order.quantity
+                    ? order.totalPrice / order.quantity
+                    : 0);
+
+            const status =
+                order.status || "pending";
+
+            // Farmer gets a status dropdown
+            let statusHTML = "";
+
+            if (user.role === "farmer") {
+
+                statusHTML = `
+                    <select
+                        class="order-status"
+                        onchange="updateOrderStatus('${order._id}', this.value)"
+                    >
+                        <option value="pending"
+                            ${status === "pending" ? "selected" : ""}>
+                            Pending
+                        </option>
+
+                        <option value="confirmed"
+                            ${status === "confirmed" ? "selected" : ""}>
+                            Confirmed
+                        </option>
+
+                        <option value="shipped"
+                            ${status === "shipped" ? "selected" : ""}>
+                            Shipped
+                        </option>
+
+                        <option value="delivered"
+                            ${status === "delivered" ? "selected" : ""}>
+                            Delivered
+                        </option>
+
+                        <option value="cancelled"
+                            ${status === "cancelled" ? "selected" : ""}>
+                            Cancelled
+                        </option>
+                    </select>
+                `;
+
+            } else {
+
+                // Buyer only sees the current status
+                statusHTML = `
+                    <span class="status ${status.toLowerCase()}">
+                        ${status}
+                    </span>
+                `;
+            }
+
+            row.innerHTML = `
+                <td>
+                    ${getProductEmoji(productName)}
+                    ${productName}
+                </td>
+
+                <td>
+                    ${buyerName}
+                </td>
+
+                <td>
+                    ${quantity} kg
+                </td>
+
+                <td>
+                    ₹${price}/kg
+                </td>
+
+                <td>
+                    ${statusHTML}
+                </td>
+            `;
+
+            ordersList.appendChild(row);
+
+        });
+
+    } catch (error) {
+
+        console.error("Orders error:", error);
+
+        ordersList.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    ❌ Unable to load orders.
+                </td>
+            </tr>
+        `;
+    }
+}
+async function updateOrderStatus(orderId, newStatus) {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        alert("Please login first.");
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/orders/${orderId}/status`,
+            {
+                method: "PATCH",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            alert(
+                "❌ " +
+                (data.message || "Failed to update order status")
+            );
+
+            // Reload to restore the previous status
+            loadOrders();
+
+            return;
+        }
+
+        alert("✅ Order status updated successfully!");
+
+        // Reload orders with the new status
+        loadOrders();
+
+    } catch (error) {
+
+        console.error("Status update error:", error);
+
+        alert("❌ Unable to update order status.");
+
+        loadOrders();
+    }
+}
 // ==========================================
 // BUYER - PLACE ORDER
 // ==========================================
@@ -545,6 +785,7 @@ function getProductEmoji(productName) {
 document.addEventListener("DOMContentLoaded", function () {
 
     loadMarketplaceProducts();
+    loadOrders();
 
 });
 const translations = {
@@ -562,7 +803,7 @@ const translations = {
         language: "Language",
         logout: "Logout",
 
-        welcome: "Welcome back, Rahul 👋",
+        welcome: "Welcome back, 👋",
 
         totalProduce: "Total Produce",
         activeOrders: "Active Orders",

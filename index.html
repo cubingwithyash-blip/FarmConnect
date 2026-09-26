@@ -157,7 +157,7 @@
         <div class="profile">
     <div class="profile-icon">👨‍🌾</div>
     <div>
-        <b>Rahul Kumar</b>
+        <b></b>
         <p data-translate="farmer">Farmer</p>
     </div>
 </div>
@@ -189,8 +189,8 @@
     <div class="profile-icon">👨‍🌾</div>
 
     <div>
-        <b>Rahul Kumar</b>
-        <p>Farmer</p>
+        <b></b>
+        <p></p>
     </div>
 </div>
 
@@ -204,9 +204,9 @@
             Dashboard
         </h1>
 
-        <p data-translate="welcome">
-            Welcome back, Rahul 👋
-        </p>
+        <p id="welcome-message">
+    Welcome back, 👋
+</p>
     </div>
 
     <button class="notification">🔔</button>
@@ -524,73 +524,39 @@
 
 
 
-        <!-- ORDERS -->
-        <section id="orders" class="page hidden">
+       <!-- ORDERS -->
+<section id="orders" class="page hidden">
 
-            <div class="section-title">
-                <h2 data-translate="orders">Orders</h2>
-                <p>Track your transactions</p>
-            </div>
+    <div class="section-title">
+        <h2 data-translate="orders">Orders</h2>
+        <p>Track your transactions</p>
+    </div>
 
-            <div class="table-container">
+    <div class="table-container">
 
-                <table>
+        <table>
 
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Buyer</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Buyer</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
 
-                    <tbody>
+            <tbody id="ordersList">
 
-                        <tr>
-                            <td>🍅 Tomato</td>
-                            <td>IIT Jammu Mess</td>
-                            <td>100 kg</td>
-                            <td>₹28/kg</td>
-                            <td>
-                                <span class="status confirmed" data-translate="confirmed">
-    Confirmed
-</span>
-                            </td>
-                        </tr>
+                <!-- Real orders will be loaded here -->
 
-                        <tr>
-                            <td>🥔 Potato</td>
-                            <td>Hotel Jammu</td>
-                            <td>200 kg</td>
-                            <td>₹24/kg</td>
-                            <td>
-                                <span class="status pending" data-translate="pending">
-    Pending
-</span>
-                            </td>
-                        </tr>
+            </tbody>
 
-                        <tr>
-                            <td>🧅 Onion</td>
-                            <td>Jammu Retailers</td>
-                            <td>150 kg</td>
-                            <td>₹30/kg</td>
-                            <td>
-                               <span class="status delivered" data-translate="delivered">
-    Delivered
-</span>
-                            </td>
-                        </tr>
+        </table>
 
-                    </tbody>
+    </div>
 
-                </table>
-
-            </div>
-
-        </section>
+</section>
 
 
 
