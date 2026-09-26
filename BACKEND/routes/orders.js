@@ -55,6 +55,8 @@ router.post("/", auth, async (req, res) => {
             });
         }
 
+        
+
         // Calculate total
         const totalPrice = quantity * product.price;
 
@@ -98,6 +100,10 @@ router.post("/", auth, async (req, res) => {
 // GET BUYER ORDERS
 // ==========================================
 
+// ==========================================
+// GET BUYER ORDERS
+// ==========================================
+
 router.get("/my-orders", auth, async (req, res) => {
 
     try {
@@ -105,6 +111,7 @@ router.get("/my-orders", auth, async (req, res) => {
         const orders = await Order.find({
             buyer: req.user.id
         })
+        .populate("buyer", "name email phone location")
         .populate({
             path: "product",
             populate: {
