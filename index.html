@@ -8,7 +8,8 @@
 </head>
 
 <body>
-    <!-- ================= AUTHENTICATION ================= -->
+
+<!-- ================= AUTHENTICATION ================= -->
 
 <div id="auth-screen" class="auth-screen">
 
@@ -18,16 +19,23 @@
             🌱 FarmConnect
         </div>
 
-        <h1 id="auth-title">Create Account</h1>
-        <p id="auth-subtitle">Join the FarmConnect marketplace</p>
+        <h1 id="auth-title" data-translate="createAccount">
+            Create Account
+        </h1>
+
+        <p id="auth-subtitle" data-translate="joinMarketplace">
+            Join the FarmConnect marketplace
+        </p>
 
         <!-- REGISTER FORM -->
+
         <form id="registerForm">
 
             <input
                 type="text"
                 id="registerName"
                 placeholder="Full Name"
+                data-translate-placeholder="fullName"
                 required
             >
 
@@ -35,6 +43,7 @@
                 type="email"
                 id="registerEmail"
                 placeholder="Email"
+                data-translate-placeholder="email"
                 required
             >
 
@@ -42,6 +51,7 @@
                 type="tel"
                 id="registerPhone"
                 placeholder="Phone Number"
+                data-translate-placeholder="phoneNumber"
                 required
             >
 
@@ -49,25 +59,36 @@
                 type="password"
                 id="registerPassword"
                 placeholder="Password"
+                data-translate-placeholder="password"
                 required
             >
 
             <select id="registerRole" required>
-                <option value="">Select Role</option>
-                <option value="farmer">👨‍🌾 Farmer</option>
-                <option value="buyer">🛒 Buyer</option>
+                <option value="" data-translate="selectRole">
+                    Select Role
+                </option>
+
+                <option value="farmer">
+                    👨‍🌾 Farmer
+                </option>
+
+                <option value="buyer">
+                    🛒 Buyer
+                </option>
             </select>
 
             <input
                 type="text"
                 id="registerLocation"
                 placeholder="Location"
+                data-translate-placeholder="location"
                 required
             >
 
-
             <button type="submit" class="primary-btn">
-                Create Account
+                <span data-translate="createAccount">
+                    Create Account
+                </span>
             </button>
 
         </form>
@@ -81,6 +102,7 @@
                 type="email"
                 id="loginEmail"
                 placeholder="Email"
+                data-translate-placeholder="email"
                 required
             >
 
@@ -88,22 +110,25 @@
                 type="password"
                 id="loginPassword"
                 placeholder="Password"
+                data-translate-placeholder="password"
                 required
             >
-                
-            <button type="submit" class="primary-btn">
-                Login
-            </button>
 
+            <button type="submit" class="primary-btn">
+                <span data-translate="login">
+                    Login
+                </span>
+            </button>
 
         </form>
 
 
         <p id="authMessage"></p>
 
+
         <div class="auth-switch">
 
-            <span id="switchText">
+            <span id="switchText" data-translate="alreadyAccount">
                 Already have an account?
             </span>
 
@@ -111,6 +136,7 @@
                 type="button"
                 id="switchAuth"
                 onclick="switchAuthMode()"
+                data-translate="login"
             >
                 Login
             </button>
@@ -121,455 +147,525 @@
 
 </div>
 
-    <!-- Main Application -->
+
+<!-- ================= MAIN APPLICATION ================= -->
 
 <div id="app" class="hidden">
 
-<!-- Sidebar -->
-<aside class="sidebar">
+    <!-- Sidebar -->
+
+    <aside class="sidebar">
 
         <div class="logo">
             🌱 FarmConnect
         </div>
 
+
         <nav>
-            <button onclick="showPage('dashboard', event)" class="nav-btn active">
-    🏠 <span data-translate="dashboard">Dashboard</span>
-</button>
 
-           <button onclick="showPage('marketplace', event)" class="nav-btn">
-    🛒 <span data-translate="marketplace">Marketplace</span>
-</button>
+            <button
+                onclick="showPage('dashboard', event)"
+                class="nav-btn active"
+            >
+                🏠
+                <span data-translate="dashboard">
+                    Dashboard
+                </span>
+            </button>
 
-<button onclick="showPage('orders', event)" class="nav-btn">
-    📦 <span data-translate="orders">Orders</span>
-</button>
 
-<button onclick="showPage('forecast', event)" class="nav-btn">
-    🤖 <span data-translate="forecast">AI Forecast</span>
-</button>
+            <button
+                onclick="showPage('marketplace', event)"
+                class="nav-btn"
+            >
+                🛒
+                <span data-translate="marketplace">
+                    Marketplace
+                </span>
+            </button>
 
-<button onclick="showPage('logistics', event)" class="nav-btn">
-    🚚 <span data-translate="logistics">Logistics</span>
-</button>
+
+            <button
+                onclick="showPage('orders', event)"
+                class="nav-btn"
+            >
+                📦
+                <span data-translate="orders">
+                    Orders
+                </span>
+            </button>
+
+
+            <button
+                onclick="showPage('forecast', event)"
+                class="nav-btn"
+            >
+                🤖
+                <span data-translate="forecast">
+                    AI Forecast
+                </span>
+            </button>
+
+
+            <button
+                onclick="showPage('logistics', event)"
+                class="nav-btn"
+            >
+                🚚
+                <span data-translate="logistics">
+                    Logistics
+                </span>
+            </button>
+
         </nav>
 
+
         <div class="profile">
-    <div class="profile-icon">👨‍🌾</div>
-    <div>
-        <b></b>
-        <p data-translate="farmer">Farmer</p>
-    </div>
-</div>
 
-<!-- Language Selector -->
-<div class="language-selector">
+            <div class="profile-icon">
+                👨‍🌾
+            </div>
 
-    <label for="languageSelect" data-translate="language">
-        Language
-    </label>
+            <div>
+                <b></b>
+                <p></p>
+            </div>
 
-    <select id="languageSelect">
-        <option value="en">English</option>
-        <option value="hi">हिन्दी</option>
-    </select>
+        </div>
 
-</div>
 
-<button id="logoutBtn" class="logout-btn" onclick="logout()">
-    🚪 <span data-translate="logout">Logout</span>
-</button>
+        <!-- LANGUAGE -->
+
+        <div class="language-selector">
+
+            <label
+                for="languageSelect"
+                data-translate="language"
+            >
+                Language
+            </label>
+
+            <select id="languageSelect">
+
+                <option value="en">
+                    English
+                </option>
+
+                <option value="hi">
+                    हिन्दी
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <button
+            id="logoutBtn"
+            class="logout-btn"
+            onclick="logout()"
+        >
+            🚪
+            <span data-translate="logout">
+                Logout
+            </span>
+        </button>
 
     </aside>
 
 
-    <!-- Main Content -->
+    <!-- MAIN CONTENT -->
+
     <main class="main">
-        <div class="profile">
-    <div class="profile-icon">👨‍🌾</div>
 
-    <div>
-        <b></b>
-        <p></p>
-    </div>
-</div>
+        <!-- HEADER -->
 
-
-
-
-        <!-- Header -->
-       <header class="header">
+        <header class="header">
     <div>
         <h1 id="page-title" data-translate="dashboard">
             Dashboard
         </h1>
 
-        <p id="welcome-message">
-    Welcome back, 👋
-</p>
+        <p id="welcome-message" data-translate="welcome">
+            Welcome back
+        </p>
     </div>
 
     <button class="notification">🔔</button>
 </header>
 
 
-        <!-- DASHBOARD -->
+        <!-- ================= DASHBOARD ================= -->
+
         <section id="dashboard" class="page">
 
             <div class="stats">
 
-    <div class="stat-card">
-        <span>🌾</span>
-        <div>
-            <p data-translate="totalProduce">Total Produce</p>
-            <h2>1,250 kg</h2>
-        </div>
-    </div>
+                <div class="stat-card">
 
-    <div class="stat-card">
-        <span>📦</span>
-        <div>
-            <p data-translate="activeOrders">Active Orders</p>
-            <h2>12</h2>
-        </div>
-    </div>
+                    <span>🌾</span>
 
-    <div class="stat-card">
-        <span>💰</span>
-        <div>
-            <p data-translate="monthlyEarnings">
-                This Month's Earnings
-            </p>
-            <h2>₹42,500</h2>
-        </div>
-    </div>
+                    <div>
 
-    <div class="stat-card">
-        <span>📈</span>
-        <div>
-            <p data-translate="averagePrice">
-                Average Price
-            </p>
-            <h2>₹31/kg</h2>
-        </div>
-    </div>
+                        <p data-translate="totalProduce">
+                            Total Produce
+                        </p>
 
-</div>
+                        <h2>1,250 kg</h2>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>📦</span>
+
+                    <div>
+
+                        <p data-translate="activeOrders">
+                            Active Orders
+                        </p>
+
+                        <h2>12</h2>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>💰</span>
+
+                    <div>
+
+                        <p data-translate="monthlyEarnings">
+                            This Month's Earnings
+                        </p>
+
+                        <h2>₹42,500</h2>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>📈</span>
+
+                    <div>
+
+                        <p data-translate="averagePrice">
+                            Average Price
+                        </p>
+
+                        <h2>₹31/kg</h2>
+
+                    </div>
+
+                </div>
+
+            </div>
 
 
             <div class="grid">
 
-                <!-- Add Produce -->
+                <!-- ADD PRODUCE -->
+
                 <div class="card">
 
                     <div class="card-header">
-                       <h2 data-translate="addProduce">Add Produce</h2>
+
+                        <h2 data-translate="addProduce">
+                            Add Produce
+                        </h2>
+
                     </div>
+
 
                     <form id="produceForm">
 
-                        <label data-translate="product">Product</label>
-                        <select id="product">
-                            <option>Tomato</option>
-                            <option>Potato</option>
-                            <option>Onion</option>
-                            <option>Apple</option>
-                            <option>Rice</option>
-                        </select>
+                        <label data-translate="product">
+                            Product
+                        </label>
 
-                        <label data-translate="quantity">Quantity (kg)</label>
-                        <input type="number" id="quantity"
-                               placeholder="e.g. 500">
+                       <select id="product">
+    <option value="Tomato" data-product="tomato">Tomato</option>
+    <option value="Potato" data-product="potato">Potato</option>
+    <option value="Onion" data-product="onion">Onion</option>
+    <option value="Carrot" data-product="carrot">Carrot</option>
+    <option value="Mango" data-product="mango">Mango</option>
+    <option value="Apple" data-product="apple">Apple</option>
+    <option value="Rice" data-product="rice">Rice</option>
+    <option value="Wheat" data-product="wheat">Wheat</option>
+</select>
 
-                        <label data-translate="price">Expected Price (₹/kg)</label>
-                        <input type="number" id="price"
-                               placeholder="e.g. 30">
 
-                        <label data-translate="location">Location</label>
-                        <input type="text"
-                               value="Jammu"
-                               id="location">
+                        <label data-translate="quantity">
+                            Quantity (kg)
+                        </label>
 
-                        <button type="submit" class="primary-btn">
-    <span data-translate="listProduce">
-        + List Produce
-    </span>
-</button>
+                        <input
+                            type="number"
+                            id="quantity"
+                            placeholder="e.g. 500"
+                            data-translate-placeholder="quantityExample"
+                        >
+
+
+                        <label data-translate="price">
+                            Expected Price (₹/kg)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="price"
+                            placeholder="e.g. 30"
+                            data-translate-placeholder="priceExample"
+                        >
+
+
+                        <label data-translate="location">
+                            Location
+                        </label>
+
+                        <input
+                            type="text"
+                            value="Jammu"
+                            id="location"
+                        >
+
+
+                        <button
+                            type="submit"
+                            class="primary-btn"
+                        >
+
+                            <span data-translate="listProduce">
+                                + List Produce
+                            </span>
+
+                        </button>
 
                     </form>
 
                 </div>
 
 
-                <!-- Recent Orders -->
+                <!-- RECENT ORDERS -->
+
                 <div class="card">
 
-    <div class="card-header">
-        <h2 data-translate="recentOrders">
-            Recent Orders
-        </h2>
+                    <div class="card-header">
 
-        <button onclick="showPage('orders', event)" class="link-btn">
-            <span data-translate="viewAll">
-                View All
-            </span>
-        </button>
-    </div>
+                        <h2 data-translate="recentOrders">
+                            Recent Orders
+                        </h2>
 
-                    <div class="order">
-                        <div>
-                            <b>🍅 Tomato</b>
-                            <p>Buyer: IIT Jammu Mess</p>
-                        </div>
+                        <button
+                            onclick="showPage('orders', event)"
+                            class="link-btn"
+                        >
 
-                        <div>
-                            <b>100 kg</b>
-                            <span class="status confirmed">
-                                Confirmed
+                            <span data-translate="viewAll">
+                                View All
                             </span>
-                        </div>
+
+                        </button>
+
                     </div>
 
-                    <div class="order">
-                        <div>
-                            <b>🥔 Potato</b>
-                            <p>Buyer: Hotel Jammu</p>
-                        </div>
+<div id="recentOrdersList">
 
-                        <div>
-                            <b>200 kg</b>
-                            <span class="status pending">
-                                Pending
-                            </span>
-                        </div>
-                    </div>
+    <!-- Real recent orders will be loaded here -->
 
-                    <div class="order">
-                        <div>
-                            <b>🧅 Onion</b>
-                            <p>Buyer: Local Retailer</p>
-                        </div>
+</div>
+                 </div>
 
-                        <div>
-                            <b>150 kg</b>
-                            <span class="status delivered">
-                                Delivered
-                            </span>
-                        </div>
-                    </div>
+
+            <!-- AI RECOMMENDATION -->
+
+            <div class="ai-box">
+
+                <div class="ai-icon">
+                    🤖
+                </div>
+
+                <div>
+
+                    <h2 data-translate="aiMarketInsight">
+                        AI Market Insight
+                    </h2>
+
+                    <p>
+
+                        <span data-translate="tomatoDemand">
+                            Tomato demand is expected to increase by
+                        </span>
+
+                        <strong>18%</strong>
+
+                        <span data-translate="nextWeek">
+                            next week.
+                        </span>
+
+                        <span data-translate="increaseSupply">
+                            Consider increasing your tomato supply.
+                        </span>
+
+                    </p>
 
                 </div>
 
+
+                <button
+                    onclick="showPage('forecast', event)"
+                >
+
+                    <span data-translate="viewForecast">
+                        View Forecast
+                    </span>
+
+                </button>
+
             </div>
-
-
-            
-            <!-- AI Recommendation -->
-<div class="ai-box">
-    <div class="ai-icon">🤖</div>
-
-    <div>
-        <h2 data-translate="aiMarketInsight">
-            AI Market Insight
-        </h2>
-
-        <p>
-            <span data-translate="tomatoDemand">
-                Tomato demand is expected to increase by
-            </span>
-
-            <strong>18%</strong>
-
-            <span data-translate="nextWeek">
-                next week.
-            </span>
-
-            <span data-translate="increaseSupply">
-                Consider increasing your tomato supply.
-            </span>
-        </p>
-    </div>
-
-    <button onclick="showPage('forecast', event)">
-        <span data-translate="viewForecast">
-            View Forecast
-        </span>
-    </button>
-</div>
 
         </section>
 
 
+        <!-- ================= MARKETPLACE ================= -->
 
-        <!-- MARKETPLACE -->
-        <section id="marketplace" class="page hidden">
+        <section
+            id="marketplace"
+            class="page hidden"
+        >
 
             <div class="search-box">
 
                 <input
-    type="text"
-    placeholder="Search produce..."
-    data-translate-placeholder="searchProduce"
->
+                    type="text"
+                    placeholder="Search produce..."
+                    data-translate-placeholder="searchProduce"
+                >
 
                 <button onclick="searchProducts()">
-                    🔍 Search
+
+                    🔍
+                    <span data-translate="search">
+                        Search
+                    </span>
+
                 </button>
 
             </div>
 
 
             <div class="section-title">
+
                 <h2 data-translate="freshProduce">
-    Fresh Produce
-</h2>
+                    Fresh Produce
+                </h2>
+
                 <p data-translate="buyDirectly">
-    Buy directly from farmers and FPOs
-</p>
+                    Buy directly from farmers and FPOs
+                </p>
+
             </div>
 
 
             <div class="products">
 
-                <div class="product-card">
-
-                    <div class="product-image">🍅</div>
-
-                    <h3>Fresh Tomatoes</h3>
-
-                    <p>👨‍🌾 Rahul Kumar</p>
-
-                    <p>📍 Jammu · 8 km away</p>
-
-                    <div class="product-bottom">
-                        <strong>₹28/kg</strong>
-                        <span>500 kg available</span>
-                    </div>
-
-                    <button onclick="placeOrder('Tomatoes')">
-                        Buy Now
-                    </button>
-
-                </div>
-
-
-                <div class="product-card">
-
-                    <div class="product-image">🥔</div>
-
-                    <h3>Fresh Potatoes</h3>
-
-                    <p>👨‍🌾 Amit Sharma</p>
-
-                    <p>📍 Samba · 22 km away</p>
-
-                    <div class="product-bottom">
-                        <strong>₹24/kg</strong>
-                        <span>800 kg available</span>
-                    </div>
-
-                    <button onclick="placeOrder('Potatoes')">
-                        Buy Now
-                    </button>
-
-                </div>
-
-
-                <div class="product-card">
-
-                    <div class="product-image">🧅</div>
-
-                    <h3>Fresh Onions</h3>
-
-                    <p>👨‍🌾 Rakesh Singh</p>
-
-                    <p>📍 Kathua · 45 km away</p>
-
-                    <div class="product-bottom">
-                        <strong>₹30/kg</strong>
-                        <span>600 kg available</span>
-                    </div>
-
-                    <button onclick="placeOrder('Onions')">
-                        Buy Now
-                    </button>
-
-                </div>
-
-
-                <div class="product-card">
-
-                    <div class="product-image">🍎</div>
-
-                    <h3>Fresh Apples</h3>
-
-                    <p>👨‍🌾 Jammu FPO</p>
-
-                    <p>📍 Bhaderwah · 75 km away</p>
-
-                    <div class="product-bottom">
-                        <strong>₹95/kg</strong>
-                        <span>1,000 kg available</span>
-                    </div>
-
-                    <button onclick="placeOrder('Apples')">
-                        Buy Now
-                    </button>
-
-                </div>
+                <!-- Products are loaded by JavaScript -->
 
             </div>
 
         </section>
 
 
+        <!-- ================= ORDERS ================= -->
 
-       <!-- ORDERS -->
-<section id="orders" class="page hidden">
-
-    <div class="section-title">
-        <h2 data-translate="orders">Orders</h2>
-        <p>Track your transactions</p>
-    </div>
-
-    <div class="table-container">
-
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Buyer</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-
-            <tbody id="ordersList">
-
-                <!-- Real orders will be loaded here -->
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-</section>
-
-
-
-        <!-- AI FORECAST -->
-        <section id="forecast" class="page hidden">
+        <section
+            id="orders"
+            class="page hidden"
+        >
 
             <div class="section-title">
 
-                <h2>🤖 AI Demand Forecast</h2>
+                <h2 data-translate="orders">
+                    Orders
+                </h2>
 
-                <p>
-                    Predicted demand based on historical
-                    marketplace data
+                <p data-translate="trackTransactions">
+                    Track your transactions
+                </p>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th data-translate="product">
+                                Product
+                            </th>
+
+                            <th data-translate="buyer">
+                                Buyer
+                            </th>
+
+                            <th data-translate="quantityShort">
+                                Quantity
+                            </th>
+
+                            <th data-translate="priceShort">
+                                Price
+                            </th>
+
+                            <th data-translate="status">
+                                Status
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="ordersList">
+
+                        <!-- Real orders will be loaded here -->
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= AI FORECAST ================= -->
+
+        <section
+            id="forecast"
+            class="page hidden"
+        >
+
+            <div class="section-title">
+
+                <h2 data-translate="aiDemandForecast">
+                    🤖 AI Demand Forecast
+                </h2>
+
+                <p data-translate="predictedDemand">
+                    Predicted demand based on historical marketplace data
                 </p>
 
             </div>
@@ -578,24 +674,56 @@
             <div class="forecast-grid">
 
                 <div class="forecast-card">
+
                     <span>🍅</span>
+
                     <h3>Tomato</h3>
+
                     <h2>680 kg</h2>
-                    <p class="increase">↑ 18% expected demand</p>
+
+                    <p class="increase">
+                        ↑
+                        <span data-translate="expectedDemand">
+                            18% expected demand
+                        </span>
+                    </p>
+
                 </div>
 
+
                 <div class="forecast-card">
+
                     <span>🥔</span>
+
                     <h3>Potato</h3>
+
                     <h2>1,420 kg</h2>
-                    <p class="decrease">↓ 5% expected demand</p>
+
+                    <p class="decrease">
+                        ↓
+                        <span data-translate="expectedDemandDecrease">
+                            5% expected demand
+                        </span>
+                    </p>
+
                 </div>
 
+
                 <div class="forecast-card">
+
                     <span>🧅</span>
+
                     <h3>Onion</h3>
+
                     <h2>850 kg</h2>
-                    <p class="increase">↑ 12% expected demand</p>
+
+                    <p class="increase">
+                        ↑
+                        <span data-translate="expectedDemandOnion">
+                            12% expected demand
+                        </span>
+                    </p>
+
                 </div>
 
             </div>
@@ -603,36 +731,39 @@
 
             <div class="chart-card">
 
-                <h2>Tomato Demand Forecast</h2>
+                <h2 data-translate="tomatoDemandForecast">
+                    Tomato Demand Forecast
+                </h2>
+
 
                 <div class="chart">
 
                     <div class="bar" style="height:40%">
-                        <span>Mon</span>
+                        <span data-translate="mon">Mon</span>
                     </div>
 
                     <div class="bar" style="height:50%">
-                        <span>Tue</span>
+                        <span data-translate="tue">Tue</span>
                     </div>
 
                     <div class="bar" style="height:55%">
-                        <span>Wed</span>
+                        <span data-translate="wed">Wed</span>
                     </div>
 
                     <div class="bar" style="height:65%">
-                        <span>Thu</span>
+                        <span data-translate="thu">Thu</span>
                     </div>
 
                     <div class="bar" style="height:72%">
-                        <span>Fri</span>
+                        <span data-translate="fri">Fri</span>
                     </div>
 
                     <div class="bar" style="height:85%">
-                        <span>Sat</span>
+                        <span data-translate="sat">Sat</span>
                     </div>
 
                     <div class="bar" style="height:92%">
-                        <span>Sun</span>
+                        <span data-translate="sun">Sun</span>
                     </div>
 
                 </div>
@@ -642,26 +773,35 @@
 
             <div class="recommendation">
 
-                💡 <strong>Recommendation:</strong>
+                💡
 
-                Based on predicted demand, farmers should
-                consider increasing tomato production by
-                approximately 15–20%.
+                <strong data-translate="recommendation">
+                    Recommendation:
+                </strong>
+
+                <span data-translate="forecastRecommendation">
+                    Based on predicted demand, farmers should consider increasing tomato production by approximately 15–20%.
+                </span>
 
             </div>
 
         </section>
 
 
+        <!-- ================= LOGISTICS ================= -->
 
-        <!-- LOGISTICS -->
-        <section id="logistics" class="page hidden">
+        <section
+            id="logistics"
+            class="page hidden"
+        >
 
             <div class="section-title">
 
-                <h2>🚚 Smart Logistics</h2>
+                <h2 data-translate="smartLogistics">
+                    🚚 Smart Logistics
+                </h2>
 
-                <p>
+                <p data-translate="routeOptimization">
                     AI-assisted route optimization
                 </p>
 
@@ -671,27 +811,53 @@
             <div class="logistics-stats">
 
                 <div class="stat-card">
+
                     <span>🚛</span>
+
                     <div>
-                        <p>Active Vehicles</p>
+
+                        <p data-translate="activeVehicles">
+                            Active Vehicles
+                        </p>
+
                         <h2>8</h2>
+
                     </div>
+
                 </div>
 
+
                 <div class="stat-card">
+
                     <span>📍</span>
+
                     <div>
-                        <p>Deliveries Today</p>
+
+                        <p data-translate="deliveriesToday">
+                            Deliveries Today
+                        </p>
+
                         <h2>24</h2>
+
                     </div>
+
                 </div>
 
+
                 <div class="stat-card">
+
                     <span>💰</span>
+
                     <div>
-                        <p>Estimated Saving</p>
+
+                        <p data-translate="estimatedSaving">
+                            Estimated Saving
+                        </p>
+
                         <h2>₹4,250</h2>
+
                     </div>
+
                 </div>
 
             </div>
@@ -699,46 +865,87 @@
 
             <div class="route-card">
 
-                <h2>Optimized Delivery Route</h2>
+                <h2 data-translate="optimizedRoute">
+                    Optimized Delivery Route
+                </h2>
+
 
                 <div class="route">
 
                     <div class="location">
+
                         <span>🟢</span>
+
                         <div>
-                            <b>Farmer A</b>
+
+                            <b data-translate="farmerA">
+                                Farmer A
+                            </b>
+
                             <p>Jammu</p>
+
                         </div>
+
                     </div>
+
 
                     <div class="line"></div>
 
+
                     <div class="location">
+
                         <span>🟢</span>
+
                         <div>
-                            <b>Farmer B</b>
+
+                            <b data-translate="farmerB">
+                                Farmer B
+                            </b>
+
                             <p>R.S. Pura</p>
+
                         </div>
+
                     </div>
+
 
                     <div class="line"></div>
 
+
                     <div class="location">
+
                         <span>🔵</span>
+
                         <div>
-                            <b>Collection Centre</b>
+
+                            <b data-translate="collectionCentre">
+                                Collection Centre
+                            </b>
+
                             <p>Jammu</p>
+
                         </div>
+
                     </div>
+
 
                     <div class="line"></div>
 
+
                     <div class="location">
+
                         <span>🔴</span>
+
                         <div>
-                            <b>Bulk Buyer</b>
+
+                            <b data-translate="bulkBuyer">
+                                Bulk Buyer
+                            </b>
+
                             <p>IIT Jammu</p>
+
                         </div>
+
                     </div>
 
                 </div>
@@ -747,18 +954,35 @@
                 <div class="route-result">
 
                     <div>
-                        <p>Total Distance</p>
+
+                        <p data-translate="totalDistance">
+                            Total Distance
+                        </p>
+
                         <h2>31 km</h2>
+
                     </div>
 
+
                     <div>
-                        <p>Estimated Cost</p>
+
+                        <p data-translate="estimatedCost">
+                            Estimated Cost
+                        </p>
+
                         <h2>₹480</h2>
+
                     </div>
 
+
                     <div>
-                        <p>Saving</p>
+
+                        <p data-translate="saving">
+                            Saving
+                        </p>
+
                         <h2>₹140</h2>
+
                     </div>
 
                 </div>
@@ -771,8 +995,8 @@
 
 </div>
 
+
 <script src="script.js"></script>
 
-</body>
 </body>
 </html>

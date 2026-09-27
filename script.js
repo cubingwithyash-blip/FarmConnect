@@ -1,4 +1,5 @@
 const API_URL = "https://farmconnect-wyel.onrender.com/api";
+
 // ================= AUTHENTICATION =================
 
 let isLoginMode = false;
@@ -41,31 +42,28 @@ function switchAuthMode() {
         switchButton.textContent = "Login";
     }
 }
+
+
 // ================= LOGOUT =================
 
 function logout() {
 
-    // Remove saved login information
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
-    // Hide the application
     document.getElementById("app").classList.add("hidden");
 
-    // Show login/register screen
     document.getElementById("auth-screen").classList.remove("hidden");
 
-    // Reset login form
     document.getElementById("loginForm").reset();
 
-    // Clear message
     document.getElementById("authMessage").textContent = "";
 
-    // Make sure Register screen is shown
     if (isLoginMode) {
         switchAuthMode();
     }
 }
+
 
 // ================= REGISTER =================
 
@@ -106,7 +104,8 @@ document.getElementById("registerForm").addEventListener("submit", async functio
 
         if (response.ok) {
 
-            message.textContent = "Registration successful! Please login.";
+            message.textContent =
+                getTranslation("registrationSuccess");
 
             document.getElementById("registerForm").reset();
 
@@ -122,7 +121,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
         console.error(error);
 
         document.getElementById("authMessage").textContent =
-            "Unable to connect to server.";
+            getTranslation("unableServer");
     }
 });
 
@@ -156,28 +155,22 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
         if (response.ok) {
 
-            // Save login information
-
             localStorage.setItem("token", data.token);
             localStorage.setItem("user", JSON.stringify(data.user));
-
-            // Hide login screen
 
             document.getElementById("auth-screen")
                 .classList.add("hidden");
 
-            // Show website
-
             document.getElementById("app")
                 .classList.remove("hidden");
 
-            // Update user information
-
             updateUserProfile(data.user);
 
-            // Load orders immediately after login
+            loadMarketplaceProducts();
 
             loadOrders();
+
+            startOrderAutoRefresh();
 
         } else {
 
@@ -190,7 +183,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         console.error(error);
 
         document.getElementById("authMessage").textContent =
-            "Unable to connect to server.";
+            getTranslation("unableServer");
     }
 });
 
@@ -199,20 +192,52 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
 function updateUserProfile(user) {
 
-    const profileName = document.querySelector(".profile b");
-    const profileRole = document.querySelector(".profile p");
-    const welcomeMessage = document.getElementById("welcome-message");
+    const profileName =
+        document.querySelector(".profile b");
+
+    const profileRole =
+        document.querySelector(".profile p");
+
+    const welcomeMessage =
+        document.getElementById("welcome-message");
 
     if (profileName) {
         profileName.textContent = user.name;
     }
 
     if (profileRole) {
-        profileRole.textContent = user.role;
+
+        const language =
+            localStorage.getItem("language") || "en";
+
+        if (translations[language]) {
+
+            if (user.role === "farmer") {
+                profileRole.textContent =
+                    translations[language].farmer;
+            } else if (user.role === "buyer") {
+                profileRole.textContent =
+                    translations[language].buyer;
+            } else {
+                profileRole.textContent = user.role;
+            }
+
+        } else {
+            profileRole.textContent = user.role;
+        }
     }
 
     if (welcomeMessage) {
-        welcomeMessage.textContent = `Welcome back, ${user.name} 👋`;
+
+        const language =
+            localStorage.getItem("language") || "en";
+
+        const welcomeTemplate =
+            translations[language]?.welcomeBackUser ||
+            translations.en.welcomeBackUser;
+
+        welcomeMessage.textContent =
+            welcomeTemplate.replace("{name}", user.name);
     }
 }
 
@@ -221,12 +246,16 @@ function updateUserProfile(user) {
 
 window.addEventListener("DOMContentLoaded", function() {
 
-    const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
+    const token =
+        localStorage.getItem("token");
+
+    const user =
+        localStorage.getItem("user");
 
     if (token && user) {
 
-        const parsedUser = JSON.parse(user);
+        const parsedUser =
+            JSON.parse(user);
 
         document.getElementById("auth-screen")
             .classList.add("hidden");
@@ -236,84 +265,121 @@ window.addEventListener("DOMContentLoaded", function() {
 
         updateUserProfile(parsedUser);
 
+        loadMarketplaceProducts();
+
+        loadOrders();
     }
 
 });
+
+
+// ==========================================
+// SHOW PAGE
+// ==========================================
+
 function showPage(pageName, event) {
 
-    // Hide all pages
-    const pages = document.querySelectorAll(".page");
+    const pages =
+        document.querySelectorAll(".page");
 
     pages.forEach(function(page) {
         page.classList.add("hidden");
     });
 
-
-    // Show selected page
     document.getElementById(pageName)
         .classList.remove("hidden");
 
 
-    // Change title
+    const language =
+        localStorage.getItem("language") || "en";
+
     const titles = {
-        dashboard: "Dashboard",
-        marketplace: "Marketplace",
-        orders: "Orders",
-        forecast: "AI Demand Forecast",
-        logistics: "Smart Logistics"
+
+        dashboard:
+            translations[language]?.dashboard ||
+            "Dashboard",
+
+        marketplace:
+            translations[language]?.marketplace ||
+            "Marketplace",
+
+        orders:
+            translations[language]?.orders ||
+            "Orders",
+
+        forecast:
+            translations[language]?.forecast ||
+            "AI Demand Forecast",
+
+        logistics:
+            translations[language]?.logistics ||
+            "Smart Logistics"
     };
 
     document.getElementById("page-title")
         .textContent = titles[pageName];
 
 
-    // Change active navigation
-    const buttons = document.querySelectorAll(".nav-btn");
+    const buttons =
+        document.querySelectorAll(".nav-btn");
 
     buttons.forEach(function(button) {
         button.classList.remove("active");
     });
 
-    event.target.classList.add("active");
-    // Load fresh orders whenever Orders page is opened
-if (pageName === "orders") {
-    loadOrders();
-}
-}
+    if (event && event.target) {
+        event.target.classList.add("active");
+    }
 
+
+    if (pageName === "orders") {
+        loadOrders();
+    }
+}
 
 
 // ==========================================
 // FARMER - ADD NEW PRODUCE
 // ==========================================
 
-const produceForm = document.getElementById("produceForm");
+const produceForm =
+    document.getElementById("produceForm");
 
 if (produceForm) {
 
-    produceForm.addEventListener("submit", async function (event) {
+    produceForm.addEventListener("submit", async function(event) {
 
         event.preventDefault();
 
-        // Get JWT token
-        const token = localStorage.getItem("token");
+        const token =
+            localStorage.getItem("token");
 
         if (!token) {
-            alert("Please login first.");
+
+            alert(
+                getTranslation("pleaseLogin")
+            );
+
             return;
         }
 
-        // Get form values
-        const name = document.getElementById("product").value;
-        const quantity = document.getElementById("quantity").value;
-        const price = document.getElementById("price").value;
-        const location = document.getElementById("location").value;
+        const name =
+            document.getElementById("product").value;
 
-        // Send data to backend
+        const quantity =
+            document.getElementById("quantity").value;
+
+        const price =
+            document.getElementById("price").value;
+
+        const location =
+            document.getElementById("location").value;
+
+
         try {
 
             const response = await fetch(
-    `${API_URL}/products`,
+                `${API_URL}/products`,
                 {
                     method: "POST",
 
@@ -331,20 +397,33 @@ if (produceForm) {
                 }
             );
 
-            const data = await response.json();
+            const data =
+                await response.json();
+
 
             if (response.ok) {
 
-                alert("✅ Produce added successfully!");
+                alert(
+                    "✅ " +
+                    getTranslation("produceAdded")
+                );
 
-                // Clear form
                 produceForm.reset();
 
-                console.log("Product saved:", data.product);
+                console.log(
+                    "Product saved:",
+                    data.product
+                );
 
             } else {
 
-                alert("❌ " + (data.message || "Failed to add produce"));
+                alert(
+                    "❌ " +
+                    (
+                        data.message ||
+                        getTranslation("failedProduce")
+                    )
+                );
 
                 console.error(data);
             }
@@ -354,97 +433,149 @@ if (produceForm) {
             console.error("Error:", error);
 
             alert(
-                "❌ Cannot connect to backend. Make sure your server is running."
+                "❌ " +
+                getTranslation("unableBackend")
             );
         }
     });
 }
+
+
 // ==========================================
 // MARKETPLACE - LOAD REAL PRODUCTS
 // ==========================================
 
 async function loadMarketplaceProducts() {
 
-    const productsContainer = document.querySelector(".products");
-    const language = localStorage.getItem("language") || "en";
+    const productsContainer =
+        document.querySelector(".products");
+
+    const language =
+        localStorage.getItem("language") || "en";
+
+    const t =
+        translations[language] || translations.en;
+
 
     if (!productsContainer) {
         return;
     }
 
+
     try {
 
-        const response = await fetch(
-    `${API_URL}/products`
-);
+        const response =
+            await fetch(`${API_URL}/products`);
 
-        const products = await response.json();
+        const products =
+            await response.json();
+
 
         if (!response.ok) {
-            throw new Error(products.message || "Failed to load products");
+
+            throw new Error(
+                products.message ||
+                "Failed to load products"
+            );
         }
 
-        // Clear the existing hard-coded products
+
         productsContainer.innerHTML = "";
+
 
         if (products.length === 0) {
 
             productsContainer.innerHTML = `
                 <div class="empty-marketplace">
-                    <h3>🌾 No produce available</h3>
-                    <p>Farmers haven't listed any produce yet.</p>
+
+                    <h3>
+                        🌾 ${t.noProduce}
+                    </h3>
+
+                    <p>
+                        ${t.farmersNoProduce}
+                    </p>
+
                 </div>
             `;
 
             return;
         }
 
-        // Create product cards
+
         products.forEach(product => {
 
-            const card = document.createElement("div");
+            const card =
+                document.createElement("div");
 
-            card.className = "product-card";
+            card.className =
+                "product-card";
 
-card.innerHTML = `
-    <div class="product-image">
-        ${getProductEmoji(product.name)}
-    </div>
 
-    <h3>Fresh ${product.name}</h3>
+            card.innerHTML = `
 
-    <p>
-        👨‍🌾 ${product.farmer?.name || translations[language].farmer}
-    </p>
+                <div class="product-image">
+                    ${getProductEmoji(product.name)}
+                </div>
 
-    <p>
-        📍 ${product.location}
-    </p>
+                <h3>
+                    ${t.freshProduce}
+                    ${getTranslatedProductName(product.name)}
+                </h3>
 
-    <div class="product-bottom">
-        <strong>₹${product.price}/kg</strong>
+                <p>
+                    👨‍🌾
+                    ${product.farmer?.name || t.farmer}
+                </p>
 
-        <span>
-            ${product.quantity} ${translations[language].kgAvailable}
-        </span>
-    </div>
+                <p>
+                    📍 ${product.location}
+                </p>
 
-    <button onclick="placeOrder('${product._id}')">
-        ${translations[language].buyNow}
-    </button>
-`;
+                <div class="product-bottom">
+
+                    <strong>
+    ₹${product.price}/${t.kg}
+</strong>
+
+                    <span>
+                        ${product.quantity}
+                        ${t.kgAvailable}
+                    </span>
+
+                </div>
+
+                <button
+                    onclick="placeOrder('${product._id}')"
+                >
+                    ${t.buyNow}
+                </button>
+
+            `;
 
             productsContainer.appendChild(card);
         });
 
+
     } catch (error) {
 
-        console.error("Marketplace error:", error);
+        console.error(
+            "Marketplace error:",
+            error
+        );
 
         productsContainer.innerHTML = `
+
             <div class="empty-marketplace">
-                <h3>❌ Unable to load products</h3>
-                <p>Please make sure the backend is running.</p>
+
+                <h3>
+                    ❌ ${t.unableLoadProducts}
+                </h3>
+
+                <p>
+                    ${t.backendMessage}
+                </p>
+
             </div>
         `;
     }
@@ -455,303 +586,713 @@ card.innerHTML = `
 // LOAD REAL ORDERS
 // ==========================================
 
-// ==========================================
-// LOAD REAL ORDERS
-// ==========================================
-
 async function loadOrders() {
 
-    const ordersList = document.getElementById("ordersList");
-    const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
+    const ordersList =
+        document.getElementById("ordersList");
+
+    const token =
+        localStorage.getItem("token");
+
+    const userData =
+        localStorage.getItem("user");
+
 
     if (!ordersList || !token || !userData) {
         return;
     }
 
-    const user = JSON.parse(userData);
 
-    // Choose endpoint based on user role
+    const user =
+        JSON.parse(userData);
+
+
+    const language =
+        localStorage.getItem("language") || "en";
+
+    const t =
+        translations[language] || translations.en;
+
+
     const ordersEndpoint =
         user.role === "farmer"
             ? `${API_URL}/orders/farmer-orders`
             : `${API_URL}/orders/my-orders`;
 
+
     try {
 
-        const response = await fetch(ordersEndpoint, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
+        const response =
+            await fetch(
+                ordersEndpoint,
+                {
+                    method: "GET",
 
-        const orders = await response.json();
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+
+        const orders =
+            await response.json();
+
 
         if (!response.ok) {
+
             throw new Error(
-                orders.message || "Failed to load orders"
+                orders.message ||
+                "Failed to load orders"
             );
         }
 
+
         ordersList.innerHTML = "";
 
-        // No orders
+
         if (orders.length === 0) {
 
             ordersList.innerHTML = `
                 <tr>
+
                     <td colspan="5">
-                        No orders found.
+                        ${t.noOrders}
                     </td>
+
                 </tr>
             `;
 
             return;
         }
 
-        // Display orders
+
         orders.forEach(order => {
 
-            const row = document.createElement("tr");
+            const row =
+                document.createElement("tr");
 
-            const productName =
-                order.product?.name || "Unknown Product";
+
+            const originalProductName =
+    order.product?.name ||
+    "Unknown Product";
+
+const productName =
+    getTranslatedProductName(originalProductName);
+
 
             const buyerName =
-                order.buyer?.name || "Unknown Buyer";
+                order.buyer?.name ||
+                "Unknown Buyer";
+
 
             const quantity =
                 order.quantity || 0;
 
+
             const price =
                 order.product?.price ||
-                (order.quantity
-                    ? order.totalPrice / order.quantity
-                    : 0);
+                (
+                    order.quantity
+                        ? order.totalPrice /
+                          order.quantity
+                        : 0
+                );
+
 
             const status =
                 order.status || "pending";
 
-            // Farmer gets a status dropdown
+
             let statusHTML = "";
+
+
+            // ================= FARMER STATUS DROPDOWN =================
 
             if (user.role === "farmer") {
 
                 statusHTML = `
+
                     <select
                         class="order-status"
-                        onchange="updateOrderStatus('${order._id}', this.value)"
+                        onchange="updateOrderStatus(
+                            '${order._id}',
+                            this.value
+                        )"
                     >
-                        <option value="pending"
-                            ${status === "pending" ? "selected" : ""}>
-                            Pending
+
+                        <option
+                            value="pending"
+                            ${status === "pending"
+                                ? "selected"
+                                : ""}
+                        >
+                            ${t.pending}
                         </option>
 
-                        <option value="confirmed"
-                            ${status === "confirmed" ? "selected" : ""}>
-                            Confirmed
+                        <option
+                            value="confirmed"
+                            ${status === "confirmed"
+                                ? "selected"
+                                : ""}
+                        >
+                            ${t.confirmed}
                         </option>
 
-                        <option value="shipped"
-                            ${status === "shipped" ? "selected" : ""}>
-                            Shipped
+                        <option
+                            value="shipped"
+                            ${status === "shipped"
+                                ? "selected"
+                                : ""}
+                        >
+                            ${t.shipped}
                         </option>
 
-                        <option value="delivered"
-                            ${status === "delivered" ? "selected" : ""}>
-                            Delivered
+                        <option
+                            value="delivered"
+                            ${status === "delivered"
+                                ? "selected"
+                                : ""}
+                        >
+                            ${t.delivered}
                         </option>
 
-                        <option value="cancelled"
-                            ${status === "cancelled" ? "selected" : ""}>
-                            Cancelled
+                        <option
+                            value="cancelled"
+                            ${status === "cancelled"
+                                ? "selected"
+                                : ""}
+                        >
+                            ${t.cancelled}
                         </option>
+
                     </select>
                 `;
 
             } else {
 
-                // Buyer only sees the current status
+                // ================= BUYER STATUS =================
+
                 statusHTML = `
-                    <span class="status ${status.toLowerCase()}">
-                        ${status}
+
+                    <span
+                        class="status ${status.toLowerCase()}"
+                    >
+                        ${t[status] || status}
                     </span>
+
                 `;
             }
 
+
             row.innerHTML = `
+
                 <td>
+
                     ${getProductEmoji(productName)}
+
                     ${productName}
+
                 </td>
 
+
                 <td>
+
                     ${buyerName}
+
                 </td>
 
-                <td>
-                    ${quantity} kg
-                </td>
 
                 <td>
-                    ₹${price}/kg
+
+                    ${quantity} ${translations[localStorage.getItem("language") || "en"].kg}
+
                 </td>
 
+
                 <td>
+
+    ₹${price}/${t.kg}
+
+</td>
+
+
+                <td>
+
                     ${statusHTML}
+
                 </td>
+
             `;
+
 
             ordersList.appendChild(row);
 
         });
 
+
     } catch (error) {
 
-        console.error("Orders error:", error);
+        console.error(
+            "Orders error:",
+            error
+        );
+
 
         ordersList.innerHTML = `
+
             <tr>
+
                 <td colspan="5">
-                    ❌ Unable to load orders.
+
+                    ❌ ${t.unableLoadOrders}
+
                 </td>
+
             </tr>
+
         `;
     }
 }
-async function updateOrderStatus(orderId, newStatus) {
+// ==========================================
+// LOAD RECENT ORDERS ON DASHBOARD
+// ==========================================
 
-    const token = localStorage.getItem("token");
+async function loadRecentOrders() {
 
-    if (!token) {
-        alert("Please login first.");
+    const recentOrdersList =
+        document.getElementById("recentOrdersList");
+
+    const token =
+        localStorage.getItem("token");
+
+    const userData =
+        localStorage.getItem("user");
+
+
+    if (!recentOrdersList || !token || !userData) {
         return;
     }
 
+
+    const user =
+        JSON.parse(userData);
+
+
+    const language =
+        localStorage.getItem("language") || "en";
+
+    const t =
+        translations[language] || translations.en;
+
+
+    const ordersEndpoint =
+        user.role === "farmer"
+            ? `${API_URL}/orders/farmer-orders`
+            : `${API_URL}/orders/my-orders`;
+
+
     try {
 
-        const response = await fetch(
-            `${API_URL}/orders/${orderId}/status`,
-            {
-                method: "PATCH",
+        const response =
+            await fetch(
+                ordersEndpoint,
+                {
+                    method: "GET",
 
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
+            );
 
-                body: JSON.stringify({
-                    status: newStatus
-                })
-            }
+
+        const orders =
+            await response.json();
+
+
+        if (!response.ok) {
+            throw new Error(
+                orders.message ||
+                "Failed to load orders"
+            );
+        }
+
+
+        recentOrdersList.innerHTML = "";
+
+
+        if (orders.length === 0) {
+
+            recentOrdersList.innerHTML = `
+                <div class="order">
+
+                    <p>
+                        ${t.noOrders}
+                    </p>
+
+                </div>
+            `;
+
+            return;
+        }
+
+
+        // Show only the 3 most recent orders
+        const recentOrders =
+            orders.slice(0, 3);
+
+
+        recentOrders.forEach(order => {
+
+            const productName =
+                order.product?.name ||
+                "Unknown Product";
+
+
+            const translatedProduct =
+                getTranslatedProductName(
+                    productName
+                );
+
+
+            const buyerName =
+                order.buyer?.name ||
+                "Unknown Buyer";
+
+
+            const quantity =
+                order.quantity || 0;
+
+
+            const status =
+                order.status || "pending";
+
+
+            const row =
+                document.createElement("div");
+
+
+            row.className = "order";
+
+
+            row.innerHTML = `
+
+                <div>
+
+                    <b>
+                        ${getProductEmoji(productName)}
+                        ${translatedProduct}
+                    </b>
+
+                    <p>
+
+                        <span data-translate="buyer">
+                            ${t.buyer}
+                        </span>:
+
+                        ${buyerName}
+
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <b>
+                        ${quantity} ${t.kg}
+                    </b>
+
+                    <span
+                        class="status ${status.toLowerCase()}"
+                    >
+
+                        ${t[status] || status}
+
+                    </span>
+
+                </div>
+
+            `;
+
+
+            recentOrdersList.appendChild(row);
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "Recent orders error:",
+            error
         );
 
-        const data = await response.json();
+
+        recentOrdersList.innerHTML = `
+            <div class="order">
+
+                <p>
+                    ❌ ${t.unableLoadOrders}
+                </p>
+
+            </div>
+        `;
+    }
+}
+// ==========================================
+// AUTOMATIC ORDER STATUS REFRESH
+// ==========================================
+
+let orderRefreshInterval = null;
+
+function startOrderAutoRefresh() {
+
+    // Prevent multiple refresh timers
+    if (orderRefreshInterval) {
+        clearInterval(orderRefreshInterval);
+    }
+
+    // Check for new order/status changes every 5 seconds
+    orderRefreshInterval = setInterval(function () {
+
+        const token = localStorage.getItem("token");
+        const user = localStorage.getItem("user");
+
+        if (!token || !user) {
+            return;
+        }
+        console.log("Checking orders:", new Date().toLocaleTimeString());
+loadOrders();
+
+        loadOrders();
+
+    }, 5000);
+}
+
+// ==========================================
+// UPDATE ORDER STATUS
+// ==========================================
+
+async function updateOrderStatus(
+    orderId,
+    newStatus
+) {
+
+    const token =
+        localStorage.getItem("token");
+
+
+    if (!token) {
+
+        alert(
+            getTranslation("pleaseLogin")
+        );
+
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/orders/${orderId}/status`,
+                {
+                    method: "PATCH",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            `Bearer ${token}`
+                    },
+
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
 
         if (!response.ok) {
 
             alert(
                 "❌ " +
-                (data.message || "Failed to update order status")
+                (
+                    data.message ||
+                    getTranslation("failedStatus")
+                )
             );
 
-            // Reload to restore the previous status
+
             loadOrders();
 
             return;
         }
 
-        alert("✅ Order status updated successfully!");
 
-        // Reload orders with the new status
+        alert(
+            "✅ " +
+            getTranslation("orderStatusUpdated")
+        );
+
+
         loadOrders();
+
 
     } catch (error) {
 
-        console.error("Status update error:", error);
+        console.error(
+            "Status update error:",
+            error
+        );
 
-        alert("❌ Unable to update order status.");
+
+        alert(
+            "❌ " +
+            getTranslation("unableStatus")
+        );
+
 
         loadOrders();
     }
 }
+
+
 // ==========================================
 // BUYER - PLACE ORDER
 // ==========================================
 
 async function placeOrder(productId) {
 
-    const token = localStorage.getItem("token");
+    const token =
+        localStorage.getItem("token");
+
 
     if (!token) {
-        alert("Please login first.");
+
+        alert(
+            getTranslation("pleaseLogin")
+        );
+
         return;
     }
 
-    const quantity = prompt(
-        "Enter quantity you want to buy (kg):"
-    );
+
+    const quantity =
+        prompt(
+            getTranslation("quantityPrompt")
+        );
+
 
     if (!quantity) {
         return;
     }
 
-    const quantityNumber = Number(quantity);
+
+    const quantityNumber =
+        Number(quantity);
+
 
     if (
         isNaN(quantityNumber) ||
         quantityNumber <= 0
     ) {
-        alert("Please enter a valid quantity.");
+
+        alert(
+            getTranslation("validQuantity")
+        );
+
         return;
     }
 
+
     try {
 
-       const response = await fetch(
-    `${API_URL}/orders`,
-            {
-                method: "POST",
+        const response =
+            await fetch(
+                `${API_URL}/orders`,
+                {
+                    method: "POST",
 
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
+                    headers: {
+                        "Content-Type":
+                            "application/json",
 
-                body: JSON.stringify({
-                    productId: productId,
-                    quantity: quantityNumber
-                })
-            }
-        );
+                        "Authorization":
+                            `Bearer ${token}`
+                    },
 
-        const data = await response.json();
+                    body: JSON.stringify({
+                        productId:
+                            productId,
+
+                        quantity:
+                            quantityNumber
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
 
         if (response.ok) {
 
+            const language =
+                localStorage.getItem("language") ||
+                "en";
+
+            const t =
+                translations[language] ||
+                translations.en;
+
+
             alert(
-                "✅ Order placed successfully!\n\n" +
-                "Total: ₹" + data.order.totalPrice
+                "✅ " +
+                t.orderPlaced +
+                "\n\n" +
+                t.total +
+                ": ₹" +
+                data.order.totalPrice
             );
 
-            // Reload marketplace
+
             loadMarketplaceProducts();
+
+            loadOrders();
+
 
         } else {
 
             alert(
                 "❌ " +
-                (data.message || "Could not place order")
+                (
+                    data.message ||
+                    getTranslation("couldNotPlace")
+                )
             );
         }
+
 
     } catch (error) {
 
         console.error(error);
 
+
         alert(
-            "❌ Cannot connect to backend."
+            "❌ " +
+            getTranslation("unableBackend")
         );
     }
 }
@@ -763,191 +1304,993 @@ async function placeOrder(productId) {
 
 function getProductEmoji(productName) {
 
-    const name = productName.toLowerCase();
+    const name = productName.toLowerCase().trim();
 
-    if (name.includes("tomato")) return "🍅";
-    if (name.includes("potato")) return "🥔";
-    if (name.includes("onion")) return "🧅";
-    if (name.includes("apple")) return "🍎";
-    if (name.includes("rice")) return "🌾";
-    if (name.includes("wheat")) return "🌾";
-    if (name.includes("carrot")) return "🥕";
-    if (name.includes("mango")) return "🥭";
+    if (name.includes("tomato") || name.includes("टमाटर")) {
+        return "🍅";
+    }
+
+    if (name.includes("potato") || name.includes("आलू")) {
+        return "🥔";
+    }
+
+    if (name.includes("onion") || name.includes("प्याज़") || name.includes("प्याज")) {
+        return "🧅";
+    }
+
+    if (name.includes("apple") || name.includes("सेब")) {
+        return "🍎";
+    }
+
+    if (name.includes("rice") || name.includes("चावल")) {
+        return "🌾";
+    }
+
+    if (name.includes("wheat") || name.includes("गेहूँ") || name.includes("गेहूं")) {
+        return "🌾";
+    }
+
+    if (name.includes("carrot") || name.includes("गाजर")) {
+        return "🥕";
+    }
+
+    if (name.includes("mango") || name.includes("आम")) {
+        return "🥭";
+    }
 
     return "🌱";
 }
+function getTranslatedProductName(productName) {
 
+    const language =
+        localStorage.getItem("language") || "en";
 
-// ==========================================
-// LOAD MARKETPLACE WHEN PAGE OPENS
-// ==========================================
+    const name =
+        productName.toLowerCase().trim();
 
-document.addEventListener("DOMContentLoaded", function () {
+    const translationKey = {
 
-    loadMarketplaceProducts();
-    loadOrders();
+        potato: "potato",
+        tomato: "tomato",
+        onion: "onion",
+        apple: "apple",
+        rice: "rice",
+        wheat: "wheat",
+        carrot: "carrot",
+        mango: "mango"
 
-});
-const translations = {
+    }[name];
 
-    en: {
-
-        dashboard: "Dashboard",
-        marketplace: "Marketplace",
-        orders: "Orders",
-        forecast: "AI Forecast",
-        logistics: "Logistics",
-
-        farmer: "Farmer",
-        buyer: "Buyer",
-        language: "Language",
-        logout: "Logout",
-
-        welcome: "Welcome back, 👋",
-
-        totalProduce: "Total Produce",
-        activeOrders: "Active Orders",
-        monthlyEarnings: "This Month's Earnings",
-        averagePrice: "Average Price",
-
-        addProduce: "Add Produce",
-        product: "Product",
-        quantity: "Quantity (kg)",
-        price: "Expected Price (₹/kg)",
-        location: "Location",
-
-        listProduce: "+ List Produce",
-
-        recentOrders: "Recent Orders",
-        viewAll: "View All",
-
-        freshProduce: "Fresh Produce",
-        buyDirectly: "Buy directly from farmers and FPOs",
-        buyNow: "Buy Now",
-
-        aiForecast: "AI Demand Forecast",
-        logisticsOptimization: "Smart Logistics",
-
-        pending: "Pending",
-        confirmed: "Confirmed",
-        delivered: "Delivered",
-        shipped: "Shipped",
-
-        kgAvailable: "kg available",
-        aiMarketInsight: "AI Market Insight",
-        tomatoDemand: "Tomato demand is expected to increase by",
-        nextWeek: "next week.",
-        increaseSupply: "Consider increasing your tomato supply.",
-        viewForecast: "View Forecast",
-        searchProduce: "Search produce...",
-    },
-
-
-    hi: {
-
-        dashboard: "डैशबोर्ड",
-        marketplace: "बाज़ार",
-        orders: "ऑर्डर",
-        forecast: "AI मांग पूर्वानुमान",
-        logistics: "लॉजिस्टिक्स",
-
-        farmer: "किसान",
-        buyer: "खरीदार",
-        language: "भाषा",
-        logout: "लॉगआउट",
-
-        welcome: "वापसी पर स्वागत है, राहुल 👋",
-
-        totalProduce: "कुल उपज",
-        activeOrders: "सक्रिय ऑर्डर",
-        monthlyEarnings: "इस महीने की कमाई",
-        averagePrice: "औसत कीमत",
-
-        addProduce: "उपज जोड़ें",
-        product: "उत्पाद",
-        quantity: "मात्रा (किग्रा)",
-        price: "अपेक्षित कीमत (₹/किग्रा)",
-        location: "स्थान",
-
-        listProduce: "+ उपज सूचीबद्ध करें",
-
-        recentOrders: "हाल के ऑर्डर",
-        viewAll: "सभी देखें",
-
-        freshProduce: "ताज़ी उपज",
-        buyDirectly: "किसानों और FPO से सीधे खरीदें",
-        buyNow: "अभी खरीदें",
-
-        aiForecast: "AI मांग पूर्वानुमान",
-        logisticsOptimization: "स्मार्ट लॉजिस्टिक्स",
-
-        pending: "लंबित",
-        confirmed: "पुष्टि की गई",
-        delivered: "डिलीवर किया गया",
-        shipped: "भेजा गया",
-
-        kgAvailable: "किग्रा उपलब्ध",
-        aiMarketInsight: "AI बाज़ार जानकारी",
-tomatoDemand: "टमाटर की मांग में",
-nextWeek: "अगले सप्ताह बढ़ोतरी की उम्मीद है।",
-increaseSupply: "अपने टमाटर की आपूर्ति बढ़ाने पर विचार करें।",
-viewForecast: "पूर्वानुमान देखें",
-searchProduce: "उपज खोजें...",
+    if (
+        translationKey &&
+        translations[language] &&
+        translations[language][translationKey]
+    ) {
+        return translations[language][translationKey];
     }
-};
-function changeLanguage(language) {
 
-    // Translate normal text
-    const elements = document.querySelectorAll("[data-translate]");
+    return productName;
+}
+function translateProductDropdown(language) {
 
-    elements.forEach(element => {
+    const productSelect =
+        document.getElementById("product");
 
-        const key = element.getAttribute("data-translate");
+    if (!productSelect) {
+        return;
+    }
 
-        if (translations[language] && translations[language][key]) {
-            element.textContent = translations[language][key];
-        }
+    const options =
+        productSelect.querySelectorAll("option");
 
-    });
-
-
-    // Translate input placeholders
-    const placeholderElements =
-        document.querySelectorAll("[data-translate-placeholder]");
-
-    placeholderElements.forEach(element => {
+    options.forEach(option => {
 
         const key =
-            element.getAttribute("data-translate-placeholder");
+            option.getAttribute("data-product");
 
-        if (translations[language] && translations[language][key]) {
-            element.placeholder =
+        if (
+            key &&
+            translations[language] &&
+            translations[language][key]
+        ) {
+            option.textContent =
                 translations[language][key];
         }
 
     });
+}
+
+// ==========================================
+// TRANSLATIONS
+// ==========================================
+
+const translations = {
+
+    en: {
+kgAvailable: "kg available",
+        // Navigation
+        dashboard:
+            "Dashboard",
+
+        marketplace:
+            "Marketplace",
+
+        orders:
+            "Orders",
+
+        forecast:
+            "AI Forecast",
+
+        logistics:
+            "Logistics",
+
+            kg: "kg",
+
+
+        // Profile
+        farmer:
+            "Farmer",
+
+        buyer:
+            "Buyer",
+
+        language:
+            "Language",
+
+        logout:
+            "Logout",
+
+
+        // Authentication
+        createAccount:
+            "Create Account",
+
+        welcomeBack:
+            "Welcome Back",
+
+        welcomeBackUser:
+            "Welcome back, {name} 👋",
+
+        joinMarketplace:
+            "Join the FarmConnect marketplace",
+
+        loginSubtitle:
+            "Login to your FarmConnect account",
+
+        login:
+            "Login",
+
+        register:
+            "Register",
+
+        alreadyAccount:
+            "Already have an account?",
+
+        noAccount:
+            "Don't have an account?",
+
+        fullName:
+            "Full Name",
+
+
+        // Dashboard
+        welcome:
+            "Welcome back",
+
+        totalProduce:
+            "Total Produce",
+
+        activeOrders:
+            "Active Orders",
+
+        monthlyEarnings:
+            "This Month's Earnings",
+
+        averagePrice:
+            "Average Price",
+
+
+        // Add Produce
+        addProduce:
+            "Add Produce",
+
+        product:
+            "Product",
+
+        quantity:
+            "Quantity (kg)",
+
+        price:
+            "Expected Price (₹/kg)",
+
+        location:
+            "Location",
+
+        listProduce:
+            "+ List Produce",
+
+
+        // Orders
+        recentOrders:
+            "Recent Orders",
+
+        viewAll:
+            "View All",
+
+        status:
+            "Status",
+
+        trackTransactions:
+            "Track your transactions",
+
+
+        // Marketplace
+        freshProduce:
+            "Fresh Produce",
+
+        buyDirectly:
+            "Buy directly from farmers and FPOs",
+
+        buyNow:
+            "Buy Now",
+
+        kgAvailable:
+            "kg available",
+
+
+        // Order Status
+        pending:
+            "Pending",
+
+        confirmed:
+            "Confirmed",
+
+        shipped:
+            "Shipped",
+
+        delivered:
+            "Delivered",
+
+        cancelled:
+            "Cancelled",
+
+
+        // AI Forecast
+        aiForecast:
+            "AI Demand Forecast",
+
+        aiDemandForecast:
+            "AI Demand Forecast",
+
+        predictedDemand:
+            "Predicted demand based on historical marketplace data",
+
+        expectedDemand:
+            "18% expected demand",
+
+        expectedDemandDecrease:
+            "5% expected demand",
+
+        expectedDemandOnion:
+            "12% expected demand",
+
+        tomatoDemandForecast:
+            "Tomato Demand Forecast",
+
+        mon:
+            "Mon",
+
+        tue:
+            "Tue",
+
+        wed:
+            "Wed",
+
+        thu:
+            "Thu",
+
+        fri:
+            "Fri",
+
+        sat:
+            "Sat",
+
+        sun:
+            "Sun",
+
+        recommendation:
+            "Recommendation:",
+
+        forecastRecommendation:
+            "Based on predicted demand, farmers should consider increasing tomato production by approximately 15–20%.",
+
+
+        // Logistics
+        smartLogistics:
+            "Smart Logistics",
+
+        logisticsOptimization:
+            "Smart Logistics",
+
+        routeOptimization:
+            "AI-assisted route optimization",
+
+        activeVehicles:
+            "Active Vehicles",
+
+        deliveriesToday:
+            "Deliveries Today",
+
+        estimatedSaving:
+            "Estimated Saving",
+
+        optimizedRoute:
+            "Optimized Delivery Route",
+
+        farmerA:
+            "Farmer A",
+
+        farmerB:
+            "Farmer B",
+
+        collectionCentre:
+            "Collection Centre",
+
+        bulkBuyer:
+            "Bulk Buyer",
+
+        totalDistance:
+            "Total Distance",
+
+        estimatedCost:
+            "Estimated Cost",
+
+        saving:
+            "Saving",
+
+
+        // AI Market Insight
+        aiMarketInsight:
+            "AI Market Insight",
+
+        tomatoDemand:
+            "Tomato demand is expected to increase by",
+
+        nextWeek:
+            "next week.",
+
+        increaseSupply:
+            "Consider increasing your tomato supply.",
+
+        viewForecast:
+            "View Forecast",
+
+
+        // Search
+        searchProduce:
+            "Search produce...",
+
+
+        // Examples
+        quantityExample:
+            "e.g. 500",
+
+        priceExample:
+            "e.g. 30",
+
+
+        // Marketplace Messages
+        noProduce:
+            "No produce available",
+
+        farmersNoProduce:
+            "Farmers haven't listed any produce yet.",
+
+        unableLoadProducts:
+            "Unable to load products",
+
+        backendMessage:
+            "Please make sure the backend is running.",
+
+
+        // Orders Messages
+        noOrders:
+            "No orders found.",
+
+        unableLoadOrders:
+            "Unable to load orders.",
+
+            potato: "Potato",
+tomato: "Tomato",
+onion: "Onion",
+apple: "Apple",
+rice: "Rice",
+wheat: "Wheat",
+carrot: "Carrot",
+mango: "Mango",
+
+
+        // General Messages
+        pleaseLogin:
+            "Please login first.",
+
+        validQuantity:
+            "Please enter a valid quantity.",
+
+        quantityPrompt:
+            "Enter quantity you want to buy (kg):",
+
+        orderPlaced:
+            "Order placed successfully!",
+
+        total:
+            "Total",
+
+        couldNotPlace:
+            "Could not place order",
+
+        unableBackend:
+            "Cannot connect to backend.",
+
+        produceAdded:
+            "Produce added successfully!",
+
+        failedProduce:
+            "Failed to add produce",
+
+        orderStatusUpdated:
+            "Order status updated successfully!",
+
+        failedStatus:
+            "Failed to update order status",
+
+        unableStatus:
+            "Unable to update order status",
+
+        unableServer:
+            "Unable to connect to server.",
+
+        registrationSuccess:
+            "Registration successful! Please login."
+    },
+
+
+    hi: {
+kgAvailable: "किग्रा उपलब्ध",
+        // Navigation
+        dashboard:
+            "डैशबोर्ड",
+
+        marketplace:
+            "बाज़ार",
+
+        orders:
+            "ऑर्डर",
+
+        forecast:
+            "एआई मांग पूर्वानुमान",
+
+        logistics:
+            "लॉजिस्टिक्स",
+
+            kg: "किग्रा",
+
+
+        // Profile
+        farmer:
+            "किसान",
+
+        buyer:
+            "खरीदार",
+
+        language:
+            "भाषा",
+
+        logout:
+            "लॉग आउट",
+
+
+        // Authentication
+        createAccount:
+            "खाता बनाएं",
+
+        welcomeBack:
+            "वापसी पर स्वागत है",
+
+        welcomeBackUser:
+            "वापसी पर स्वागत है, {name} 👋",
+
+        joinMarketplace:
+            "FarmConnect कृषि बाज़ार से जुड़ें",
+
+        loginSubtitle:
+            "अपने FarmConnect खाते में लॉग इन करें",
+
+        login:
+            "लॉग इन",
+
+        register:
+            "पंजीकरण करें",
+
+        alreadyAccount:
+            "क्या आपका पहले से खाता है?",
+
+        noAccount:
+            "क्या आपका खाता नहीं है?",
+
+        fullName:
+            "पूरा नाम",
+
+
+        // Dashboard
+        welcome:
+            "वापसी पर स्वागत है",
+
+        totalProduce:
+            "कुल उपज",
+
+        activeOrders:
+            "सक्रिय ऑर्डर",
+
+        monthlyEarnings:
+            "इस महीने की कमाई",
+
+        averagePrice:
+            "औसत कीमत",
+
+
+        // Add Produce
+        addProduce:
+            "उपज जोड़ें",
+
+        product:
+            "उत्पाद",
+
+        quantity:
+            "मात्रा (किग्रा)",
+
+        price:
+            "अपेक्षित कीमत (₹/किग्रा)",
+
+        location:
+            "स्थान",
+
+        listProduce:
+            "+ उपज सूचीबद्ध करें",
+
+
+        // Orders
+        recentOrders:
+            "हाल के ऑर्डर",
+
+        viewAll:
+            "सभी देखें",
+
+        status:
+            "स्थिति",
+
+        trackTransactions:
+            "अपने लेन-देन देखें",
+
+
+        // Marketplace
+        freshProduce:
+            "ताज़ी उपज",
+
+        buyDirectly:
+            "किसानों और FPO से सीधे खरीदें",
+
+        buyNow:
+            "अभी खरीदें",
+
+        kgAvailable:
+            "किग्रा उपलब्ध",
+
+
+        // Order Status
+        pending:
+            "लंबित",
+
+        confirmed:
+            "पुष्टि की गई",
+
+        shipped:
+            "भेजा गया",
+
+        delivered:
+            "डिलीवर किया गया",
+
+        cancelled:
+            "रद्द किया गया",
+
+
+        // AI Forecast
+        aiForecast:
+            "एआई मांग पूर्वानुमान",
+
+        aiDemandForecast:
+            "एआई मांग पूर्वानुमान",
+
+        predictedDemand:
+            "पिछले बाज़ार के आंकड़ों के आधार पर अनुमानित मांग",
+
+        expectedDemand:
+            "18% मांग बढ़ने की उम्मीद",
+
+        expectedDemandDecrease:
+            "5% मांग घटने की उम्मीद",
+
+        expectedDemandOnion:
+            "12% मांग बढ़ने की उम्मीद",
+
+        tomatoDemandForecast:
+            "टमाटर की मांग का पूर्वानुमान",
+
+        mon:
+            "सोम",
+
+        tue:
+            "मंगल",
+
+        wed:
+            "बुध",
+
+        thu:
+            "गुरु",
+
+        fri:
+            "शुक्र",
+
+        sat:
+            "शनि",
+
+        sun:
+            "रवि",
+
+        recommendation:
+            "सुझाव:",
+
+        forecastRecommendation:
+            "अनुमानित मांग के आधार पर किसानों को टमाटर का उत्पादन लगभग 15–20% बढ़ाने पर विचार करना चाहिए।",
+
+
+        // Logistics
+        smartLogistics:
+            "स्मार्ट लॉजिस्टिक्स",
+
+        logisticsOptimization:
+            "स्मार्ट लॉजिस्टिक्स",
+
+        routeOptimization:
+            "एआई की सहायता से मार्ग अनुकूलन",
+
+        activeVehicles:
+            "सक्रिय वाहन",
+
+        deliveriesToday:
+            "आज की डिलीवरी",
+
+        estimatedSaving:
+            "अनुमानित बचत",
+
+        optimizedRoute:
+            "अनुकूलित डिलीवरी मार्ग",
+
+        farmerA:
+            "किसान A",
+
+        farmerB:
+            "किसान B",
+
+        collectionCentre:
+            "संग्रह केंद्र",
+
+        bulkBuyer:
+            "थोक खरीदार",
+
+        totalDistance:
+            "कुल दूरी",
+
+        estimatedCost:
+            "अनुमानित लागत",
+
+        saving:
+            "बचत",
+
+
+        // AI Market Insight
+        aiMarketInsight:
+            "AI बाज़ार जानकारी",
+
+        tomatoDemand:
+            "टमाटर की मांग में बढ़ोतरी की उम्मीद है",
+
+        nextWeek:
+            "अगले सप्ताह।",
+
+        increaseSupply:
+            "अपने टमाटर की आपूर्ति बढ़ाने पर विचार करें।",
+
+        viewForecast:
+            "पूर्वानुमान देखें",
+
+
+        // Search
+        searchProduce:
+            "उपज खोजें...",
+
+
+        // Examples
+        quantityExample:
+            "जैसे 500",
+
+        priceExample:
+            "जैसे 30",
+
+
+        // Marketplace Messages
+        noProduce:
+            "कोई उपज उपलब्ध नहीं है",
+
+        farmersNoProduce:
+            "किसानों ने अभी तक कोई उपज सूचीबद्ध नहीं की है।",
+
+        unableLoadProducts:
+            "उत्पाद लोड नहीं हो सके",
+
+        backendMessage:
+            "कृपया सुनिश्चित करें कि सर्वर चल रहा है।",
+
+
+        // Orders Messages
+        noOrders:
+            "कोई ऑर्डर नहीं मिला।",
+
+        unableLoadOrders:
+            "ऑर्डर लोड नहीं हो सके।",
+
+            potato: "आलू",
+tomato: "टमाटर",
+onion: "प्याज़",
+apple: "सेब",
+rice: "चावल",
+wheat: "गेहूँ",
+carrot: "गाजर",
+mango: "आम",
+
+
+        // General Messages
+        pleaseLogin:
+            "कृपया पहले लॉग इन करें।",
+
+        validQuantity:
+            "कृपया सही मात्रा दर्ज करें।",
+
+        quantityPrompt:
+            "आप कितनी मात्रा खरीदना चाहते हैं (किग्रा)?",
+
+        orderPlaced:
+            "ऑर्डर सफलतापूर्वक दिया गया!",
+
+        total:
+            "कुल",
+
+        couldNotPlace:
+            "ऑर्डर नहीं दिया जा सका।",
+
+        unableBackend:
+            "सर्वर से कनेक्ट नहीं हो सका।",
+
+        produceAdded:
+            "उपज सफलतापूर्वक जोड़ दी गई!",
+
+        failedProduce:
+            "उपज जोड़ने में समस्या हुई।",
+
+        orderStatusUpdated:
+            "ऑर्डर की स्थिति सफलतापूर्वक अपडेट हुई!",
+
+        failedStatus:
+            "ऑर्डर की स्थिति अपडेट नहीं हो सकी।",
+
+        unableStatus:
+            "ऑर्डर की स्थिति अपडेट नहीं हो सकी।",
+
+        unableServer:
+            "सर्वर से कनेक्ट नहीं हो सका।",
+
+        registrationSuccess:
+            "पंजीकरण सफल रहा! कृपया लॉग इन करें।"
+    }
+};
+
+
+// ==========================================
+// GET TRANSLATION
+// ==========================================
+
+function getTranslation(key) {
+
+    const language =
+        localStorage.getItem("language") || "en";
+
+    return (
+        translations[language]?.[key] ||
+        translations.en[key] ||
+        key
+    );
+}
+
+
+// ==========================================
+// CHANGE LANGUAGE
+// ==========================================
+
+function changeLanguage(language) {
+
+    const selectedLanguage =
+        translations[language]
+            ? language
+            : "en";
+
+
+    // Translate normal text
+    const elements =
+        document.querySelectorAll(
+            "[data-translate]"
+        );
+
+
+    elements.forEach(function(element) {
+
+        const key =
+            element.getAttribute(
+                "data-translate"
+            );
+
+
+        if (
+            translations[selectedLanguage] &&
+            translations[selectedLanguage][key]
+        ) {
+
+            element.textContent =
+                translations[selectedLanguage][key];
+        }
+
+    });
+
+
+    // Translate placeholders
+    const placeholderElements =
+        document.querySelectorAll(
+            "[data-translate-placeholder]"
+        );
+
+
+    placeholderElements.forEach(
+        function(element) {
+
+            const key =
+                element.getAttribute(
+                    "data-translate-placeholder"
+                );
+
+
+            if (
+                translations[selectedLanguage] &&
+                translations[selectedLanguage][key]
+            ) {
+
+                element.placeholder =
+                    translations[selectedLanguage][key];
+            }
+
+        }
+    );
 
 
     // Save selected language
-    localStorage.setItem("language", language);
-}
+    localStorage.setItem(
+        "language",
+        selectedLanguage
+    );
+        translateProductDropdown(selectedLanguage);
 
-document.addEventListener("DOMContentLoaded", function () {
 
-    const languageSelect = document.getElementById("languageSelect");
+    // Update logged-in user's profile
+    const userData =
+        localStorage.getItem("user");
 
-    if (languageSelect) {
 
-        const savedLanguage =
-            localStorage.getItem("language") || "en";
+    if (userData) {
 
-        languageSelect.value = savedLanguage;
+        try {
 
-        changeLanguage(savedLanguage);
+            const user =
+                JSON.parse(userData);
 
-        languageSelect.addEventListener("change", function () {
-            changeLanguage(this.value);
-        });
+            updateUserProfile(user);
+
+        } catch (error) {
+
+            console.error(
+                "Language profile update error:",
+                error
+            );
+        }
     }
 
-});
+
+    // Reload dynamic content
+    loadMarketplaceProducts();
+
+    loadOrders();
+
+    loadRecentOrders();
+}
+
+
+// ==========================================
+// LOAD MARKETPLACE AND ORDERS ON PAGE LOAD
+// ==========================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        loadMarketplaceProducts();
+
+        loadOrders();
+
+        loadRecentOrders();
+
+    }
+);
+
+
+// ==========================================
+// LOAD SAVED LANGUAGE
+// ==========================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        const languageSelect =
+            document.getElementById(
+                "languageSelect"
+            );
+
+
+        const savedLanguage =
+            localStorage.getItem("language") ||
+            "en";
+
+
+        if (languageSelect) {
+
+            languageSelect.value =
+                savedLanguage;
+
+
+            languageSelect.addEventListener(
+                "change",
+                function() {
+
+                    changeLanguage(
+                        this.value
+                    );
+
+                }
+            );
+        }
+
+
+        // Apply saved language
+        changeLanguage(
+            savedLanguage
+        );
+
+    }
+);
