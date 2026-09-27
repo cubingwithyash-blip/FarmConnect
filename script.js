@@ -46,7 +46,15 @@ function switchAuthMode() {
 
 // ================= LOGOUT =================
 
+// ================= LOGOUT =================
+
 function logout() {
+
+    // Stop automatic order refresh
+    if (orderRefreshInterval) {
+        clearInterval(orderRefreshInterval);
+        orderRefreshInterval = null;
+    }
 
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -155,24 +163,27 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
         if (response.ok) {
 
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
 
-            document.getElementById("auth-screen")
-                .classList.add("hidden");
+    document.getElementById("auth-screen")
+        .classList.add("hidden");
 
-            document.getElementById("app")
-                .classList.remove("hidden");
+    document.getElementById("app")
+        .classList.remove("hidden");
 
-            updateUserProfile(data.user);
+    updateUserProfile(data.user);
 
-            loadMarketplaceProducts();
+    loadMarketplaceProducts();
 
-            loadOrders();
+    loadOrders();
 
-            startOrderAutoRefresh();
+    loadRecentOrders();
 
-        } else {
+    // Start automatic order checking
+    startOrderAutoRefresh();
+
+} else {
 
             document.getElementById("authMessage").textContent =
                 data.message;
@@ -244,6 +255,8 @@ function updateUserProfile(user) {
 
 // ================= CHECK LOGIN =================
 
+// ================= CHECK LOGIN =================
+
 window.addEventListener("DOMContentLoaded", function() {
 
     const token =
@@ -268,6 +281,11 @@ window.addEventListener("DOMContentLoaded", function() {
         loadMarketplaceProducts();
 
         loadOrders();
+
+        loadRecentOrders();
+
+        // Start automatic refresh
+        startOrderAutoRefresh();
     }
 
 });
@@ -1049,28 +1067,90 @@ async function loadRecentOrders() {
 
 let orderRefreshInterval = null;
 
-function startOrderAutoRefresh() {
+let isRefreshingOrders = false;
 
-    // Prevent multiple refresh timers
-    if (orderRefreshInterval) {
-        clearInterval(orderRefreshInterval);
+
+async function refreshOrdersAutomatically() {
+
+    const token =
+        localStorage.getItem("token");
+
+    const user =
+        localStorage.getItem("user");
+
+
+    // Stop if user is not logged in
+    if (!token || !user) {
+        return;
     }
 
-    // Check for new order/status changes every 5 seconds
-    orderRefreshInterval = setInterval(function () {
 
-        const token = localStorage.getItem("token");
-        const user = localStorage.getItem("user");
+    // Prevent multiple requests running together
+    if (isRefreshingOrders) {
+        return;
+    }
 
-        if (!token || !user) {
-            return;
-        }
-        console.log("Checking orders:", new Date().toLocaleTimeString());
-loadOrders();
 
-        loadOrders();
+    isRefreshingOrders = true;
 
-    }, 5000);
+
+    console.log(
+        "Checking orders:",
+        new Date().toLocaleTimeString()
+    );
+
+
+    try {
+
+        // Refresh full Orders page
+        await loadOrders();
+
+        // Refresh Dashboard Recent Orders
+        await loadRecentOrders();
+
+    } catch (error) {
+
+        console.error(
+            "Automatic order refresh error:",
+            error
+        );
+
+    } finally {
+
+        isRefreshingOrders = false;
+
+    }
+}
+
+
+function startOrderAutoRefresh() {
+
+    // Prevent multiple timers
+    if (orderRefreshInterval) {
+
+        clearInterval(
+            orderRefreshInterval
+        );
+
+        orderRefreshInterval = null;
+    }
+
+
+    console.log(
+        "Order auto-refresh started."
+    );
+
+
+    // Check immediately
+    refreshOrdersAutomatically();
+
+
+    // Then check every 5 seconds
+    orderRefreshInterval =
+        setInterval(
+            refreshOrdersAutomatically,
+            5000
+        );
 }
 
 // ==========================================
